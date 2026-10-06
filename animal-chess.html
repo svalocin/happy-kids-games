@@ -12,11 +12,9 @@
 
       :root {
         --forest-bg: #88c472;
-        --forest-grid: #6fa85b;
         --forest-border: #4d7e3b;
         --river-blue: #55bce7;
         --trap-bg: #efc050;
-        --den-bg: #6ba358;
         --red-craft: #ff5e5e;
         --blue-craft: #3f8cff;
         --font-family:
@@ -97,7 +95,7 @@
         touch-action: manipulation;
       }
 
-      /* 棋盘格子 */
+      /* 棋盘格子与边角圆弧 */
       .cell {
         position: relative;
         border: 1.5px dashed rgba(60, 105, 45, 0.45);
@@ -108,25 +106,20 @@
         overflow: hidden;
       }
 
-      /* 棋盘四个边角圆润贴合，彻底修复边角溢出 */
-      .cell[data-x="0"][data-y="0"],
-      .cell:first-child {
+      .cell[data-x="0"][data-y="0"] {
         border-top-left-radius: 16px;
       }
-      .cell[data-x="6"][data-y="0"],
-      .cell:nth-child(7) {
+      .cell[data-x="6"][data-y="0"] {
         border-top-right-radius: 16px;
       }
-      .cell[data-x="0"][data-y="8"],
-      .cell:nth-child(57) {
+      .cell[data-x="0"][data-y="8"] {
         border-bottom-left-radius: 16px;
       }
-      .cell[data-x="6"][data-y="8"],
-      .cell:last-child {
+      .cell[data-x="6"][data-y="8"] {
         border-bottom-right-radius: 16px;
       }
 
-      /* 普通草地装饰：端正放在格子右下角微小点缀 */
+      /* 普通草地装饰点缀 */
       .cell.grass-decor::after {
         content: "🌿";
         font-size: 11px;
@@ -262,7 +255,7 @@
         }
       }
 
-      /* 【要求】蓝方的兽穴和陷阱的文案和图案要上下颠倒，面向上方 (旋转180度) */
+      /* 蓝方地形面向对方 (旋转180度) */
       .cell.blue-side.trap .terrain-decor,
       .cell.blue-side.den .terrain-decor {
         transform: rotate(180deg);
@@ -285,7 +278,7 @@
         border-radius: 12px;
       }
 
-      /* 走棋提示指示器：独立 DOM 元素，使用 flex + 绝对定位双重百分百居中 */
+      /* 走棋提示指示器 */
       .move-hint-indicator {
         position: absolute;
         top: 0;
@@ -297,6 +290,9 @@
         justify-content: center;
         z-index: 6;
         pointer-events: none;
+      }
+      .move-hint-indicator[data-side="blue"] {
+        transform: rotate(180deg);
       }
       .move-hint-indicator svg {
         width: min(6.5vw, 32px);
@@ -328,21 +324,24 @@
         }
       }
 
-      /* ==========================================================================
-       立体纸片动物徽章 + 走棋方抖动
-       ========================================================================== */
-      .piece {
-        width: 92%;
-        height: 92%;
-        border-radius: 22px;
+      /* 立体纸片动物徽章 */
+      .piece,
+      .flying-piece {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        border: 3.5px solid #ffffff;
+        color: #ffffff;
+      }
+
+      .piece {
+        width: 92%;
+        height: 92%;
+        border-radius: 22px;
         position: relative;
         z-index: 10;
         cursor: pointer;
-        border: 3.5px solid #ffffff;
         box-shadow:
           0 5px 0 var(--paper-shadow-color, #c95050),
           0 8px 12px rgba(0, 0, 0, 0.18);
@@ -351,26 +350,26 @@
           box-shadow 0.2s;
       }
 
-      .piece[data-side="red"] {
+      .piece[data-side="red"],
+      .flying-piece[data-side="red"] {
         background: linear-gradient(145deg, #ff7b7b 0%, #ff5252 100%);
         --paper-shadow-color: #c62828;
         box-shadow:
           0 5px 0 var(--paper-shadow-color),
           0 8px 12px rgba(0, 0, 0, 0.18);
-        color: white;
       }
 
-      /* 【要求】蓝色棋子立体阴影改为朝向上面 (Y轴负偏移) */
-      .piece[data-side="blue"] {
+      .piece[data-side="blue"],
+      .flying-piece[data-side="blue"] {
+        flex-direction: column-reverse;
         background: linear-gradient(325deg, #3d8bff 0%, #68b0ff 100%);
         --paper-shadow-color: #1967d2;
         box-shadow:
           0 -5px 0 var(--paper-shadow-color),
           0 -8px 12px rgba(0, 0, 0, 0.18);
-        color: white;
       }
 
-      /* 格子与走棋高亮层级处理 */
+      /* 格子与走棋高亮层级 */
       .cell.has-selected {
         z-index: 50 !important;
         overflow: visible !important;
@@ -436,21 +435,11 @@
         }
       }
 
-      .piece.turn-shaking:nth-child(2n) {
-        animation-delay: 0.15s;
-      }
-      .piece.turn-shaking:nth-child(3n) {
-        animation-delay: 0.3s;
-      }
-      .piece.turn-shaking:nth-child(4n) {
-        animation-delay: 0.45s;
-      }
-
       .piece.turn-waiting {
         opacity: 0.94;
       }
 
-      /* 选中棋子：强制终止任何晃动动画，以自身为中心平稳放大浮起，确保在最上层完全展现 */
+      /* 选中棋子放大浮起 */
       .piece.selected {
         animation: none !important;
         z-index: 99 !important;
@@ -496,13 +485,16 @@
         transition: transform 0.2s;
       }
 
-      /* 【要求】蓝色棋子的图案与文字改为面向上方 (旋转180度) */
+      /* 蓝方棋子朝向面向对方 (旋转180度) */
       .piece[data-side="blue"] .piece-svg-wrapper,
-      .piece[data-side="blue"] .piece-name {
+      .piece[data-side="blue"] .piece-name,
+      .flying-piece[data-side="blue"] .piece-svg-wrapper,
+      .flying-piece[data-side="blue"] .piece-name {
         transform: rotate(180deg);
       }
 
-      .piece-rank {
+      .piece-rank,
+      .flying-piece .piece-rank {
         position: absolute;
         top: -6px;
         right: -6px;
@@ -520,8 +512,8 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
-      /* 蓝色棋子的角标数字也旋转180度面向上方 */
-      .piece[data-side="blue"] .piece-rank {
+      .piece[data-side="blue"] .piece-rank,
+      .flying-piece[data-side="blue"] .piece-rank {
         transform: rotate(180deg);
         top: auto;
         bottom: -6px;
@@ -540,50 +532,16 @@
         border: 1px solid #ccc;
       }
 
-      /* ==========================================================================
-       【要求】吃子飞出棋盘消失动效
-       ========================================================================== */
+      /* 吃子飞出棋盘动效元素 */
       .flying-piece {
         position: fixed !important;
         pointer-events: none !important;
         z-index: 1200 !important;
         border-radius: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border: 3.5px solid #ffffff;
         will-change: transform, opacity;
       }
-      .flying-piece[data-side="red"] {
-        background: linear-gradient(145deg, #ff7b7b 0%, #ff5252 100%);
-        box-shadow:
-          0 5px 0 #c62828,
-          0 8px 12px rgba(0, 0, 0, 0.18);
-        color: white;
-      }
-      .flying-piece[data-side="blue"] {
-        background: linear-gradient(325deg, #3d8bff 0%, #68b0ff 100%);
-        box-shadow:
-          0 -5px 0 #1967d2,
-          0 -8px 12px rgba(0, 0, 0, 0.18);
-        color: white;
-      }
-      .flying-piece[data-side="blue"] .piece-emoji,
-      .flying-piece[data-side="blue"] .piece-name {
-        transform: rotate(180deg);
-      }
-      .flying-piece[data-side="blue"] .piece-rank {
-        transform: rotate(180deg);
-        top: auto;
-        bottom: -5px;
-        right: auto;
-        left: -5px;
-      }
 
-      /* ==========================================================================
-       半透明齿轮悬浮球 (修复移动跑开 BUG + 自由拖拽 + 长按3秒出设置)
-       ========================================================================== */
+      /* 半透明齿轮悬浮球 */
       .floating-gear {
         position: fixed;
         top: 14px;
@@ -650,9 +608,7 @@
         transform: rotate(45deg);
       }
 
-      /* ==========================================================================
-       首次进入页面引导提示 (提示点击/长按设置圆点3秒进入设置)
-       ========================================================================== */
+      /* 首次进入页面引导提示 */
       .gear-guide-mask {
         position: fixed;
         top: 0;
@@ -813,9 +769,7 @@
         box-shadow: 0 2px 0 #d3501f;
       }
 
-      /* ==========================================================================
-       【要求】错误弹窗：点击确定才消失（无自动倒计时消失）+ 文字更大清晰！
-       ========================================================================== */
+      /* 规则错误提示弹窗 */
       .rule-dialog-overlay {
         position: fixed;
         top: 0;
@@ -926,9 +880,7 @@
         box-shadow: 0 -2px 0 #246cb8;
       }
 
-      /* ==========================================================================
-       【要求】游戏规则说明弹窗：铺满全屏幕！
-       ========================================================================== */
+      /* 模态框通用遮罩与卡片 */
       .modal-mask {
         position: fixed;
         top: 0;
@@ -944,14 +896,13 @@
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.2s ease;
-        padding: 0; /* 铺满视口 */
+        padding: 0;
       }
       .modal-mask.show {
         opacity: 1;
         pointer-events: auto;
       }
 
-      /* 规则弹窗铺满屏幕样式 */
       .rules-fullscreen-card {
         background: #fffdf7;
         width: 100vw;
@@ -1013,6 +964,12 @@
         transform: scale(0.92);
       }
 
+      .modal-menu-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
       .rules-scroll-body {
         overflow-y: auto;
         flex-grow: 1;
@@ -1028,6 +985,27 @@
         width: 100%;
       }
 
+      .rule-section-title {
+        font-size: 18px;
+        font-weight: 900;
+        color: #2e531f;
+      }
+
+      .rule-card {
+        padding: 12px 16px;
+        border-radius: 14px;
+      }
+
+      .rule-card-green {
+        background: #e8f5e1;
+        border: 2px solid #c4e2b7;
+      }
+
+      .rule-card-yellow {
+        background: #fff1d6;
+        border-left: 5px solid #ffae19;
+      }
+
       .rule-badge-list {
         background: #f2faee;
         padding: 14px;
@@ -1036,6 +1014,50 @@
         font-size: 15px;
         font-weight: 900;
         line-height: 1.7;
+      }
+
+      .rule-indent-list {
+        padding-left: 6px;
+      }
+
+      .rules-action-area {
+        text-align: center;
+        margin-top: 14px;
+        padding-bottom: 20px;
+      }
+
+      .rules-back-btn {
+        padding: 12px 48px;
+        font-size: 18px;
+      }
+
+      /* 获胜弹窗 */
+      .win-modal-card {
+        text-align: center;
+      }
+
+      .win-icon {
+        font-size: 54px;
+        margin: 12px 0;
+      }
+
+      .win-title {
+        font-size: 24px;
+        font-weight: 900;
+        color: #ff5e5e;
+        margin-bottom: 6px;
+      }
+
+      .win-reason {
+        color: #4a3e31;
+        margin-bottom: 24px;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .win-btn {
+        font-size: 16px;
+        padding: 10px 32px;
       }
 
       .paper-button {
@@ -1073,16 +1095,16 @@
     </style>
   </head>
   <body>
-    <!-- 主视口：尽可能铺满全屏的绿色森林棋盘 -->
+    <!-- 主视口：全屏绿色森林棋盘 -->
     <main class="game-viewport">
       <div class="board" id="chessboard"></div>
     </main>
 
-    <!-- 半透明白色齿轮悬浮球 (可拖拽 + 长按3秒出设置) -->
+    <!-- 齿轮悬浮球 (拖拽 + 长按3秒呼出菜单) -->
     <div
       class="floating-gear"
       id="floatingGear"
-      title="按住可拖动，长按3秒打开菜单"
+      title="按住可以拖动，长按3秒打开菜单哦"
     >
       <svg class="progress-ring">
         <circle
@@ -1096,137 +1118,113 @@
       <div class="gear-icon">⚙️</div>
     </div>
 
-    <!-- 首次进入提示蒙层与气泡引导 -->
+    <!-- 首次进入提示引导蒙层 -->
     <div class="gear-guide-mask" id="gearGuideMask">
       <div class="gear-guide-box" id="gearGuideBox">
         <div class="gear-guide-arrow">▲</div>
         <div class="gear-guide-card">
           <div class="gear-guide-header">
             <span>💡</span>
-            <span>设置提示</span>
+            <span>悄悄话小提示</span>
           </div>
           <div class="gear-guide-desc">
-            长按这里<strong>3秒</strong>，即可进入设置哦！
+            按住这里<strong>3秒钟</strong>，就能打开设置小口袋啦！
           </div>
-          <div class="gear-guide-sub">✨ 这里可以自由拖动位置~</div>
+          <div class="gear-guide-sub">✨ 按住小齿轮，还可以把它拖到任何喜欢的地方哦~</div>
           <button class="gear-guide-btn" id="gearGuideCloseBtn">
-            我知道啦
+            我知道啦 ✨
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 【要求】错误弹窗：点击确定才消失 + 大文字 -->
+    <!-- 走棋错误弹窗 -->
     <div class="rule-dialog-overlay" id="ruleOverlay" style="display: none">
       <div class="paper-popup">
         <div class="popup-icon" id="dialogIcon">🙈</div>
-        <div class="popup-title" id="dialogTitle">不可以这样走哦！</div>
+        <div class="popup-title" id="dialogTitle">哎呀，这样走不行哦！</div>
         <div class="popup-body" id="dialogBody">原因描述</div>
         <button class="popup-btn" id="dialogCloseBtn">
-          知道了，我换一步！
+          好哒，我换一步！🐾
         </button>
       </div>
     </div>
 
-    <!-- 设置与菜单 (长按3秒呼出) -->
+    <!-- 设置菜单弹窗 -->
     <div class="modal-mask" id="settingsModal">
       <div class="modal-card">
         <div class="washi-tape"></div>
         <div class="modal-header">
-          <h3>⚙️ 设置</h3>
+          <h3>⚙️ 游戏设置</h3>
           <button class="modal-close" id="closeSettingsBtn">&times;</button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 12px">
+        <div class="modal-menu-list">
           <div class="paper-button" id="btnMenuRules">
-            <span>📖 查看规则</span>
+            <span>📖 怎么玩（玩法规则）</span>
           </div>
           <div class="paper-button" id="btnMenuRestart">
-            <span>🔁 重新开始</span>
+            <span>🔁 重新开一局</span>
           </div>
           <div class="paper-button" id="btnMenuFullscreen">
-            <span id="fsBtnText">⛶ 铺满全屏</span>
+            <span id="fsBtnText">⛶ 进入全屏</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 【要求】游戏规则弹窗：铺满全屏幕 -->
+    <!-- 游戏玩法指南弹窗 -->
     <div class="modal-mask" id="rulesModal">
       <div class="rules-fullscreen-card">
         <div class="modal-header">
-          <h3>🦁 欢乐斗兽棋 · 玩法指南</h3>
+          <h3>🦁 欢乐斗兽棋 · 森林大冒险指南</h3>
           <button class="modal-close" id="closeRulesBtn" title="返回游戏">
             &times;
           </button>
         </div>
         <div class="rules-scroll-body">
-          <div style="font-size: 18px; font-weight: 900; color: #2e531f">
-            🏆 胜利条件：
+          <div class="rule-section-title">
+            🏆 怎么赢下比赛？
           </div>
-          <div
-            style="
-              background: #e8f5e1;
-              padding: 12px 16px;
-              border-radius: 14px;
-              border: 2px solid #c4e2b7;
-            "
-          >
-            1.
-            任何己方小动物成功攻入对方<strong>【兽穴】</strong>，即可立即获胜！<br />
-            2. 吃光对方全部小动物，或令对方无子可走。
+          <div class="rule-card rule-card-green">
+            1. <strong>进兽穴</strong>：只要有任何一只小动物跑进对方的<strong>【兽穴】</strong>，就立刻获胜啦！🏰<br />
+            2. <strong>大团圆</strong>：吃光对方所有小动物，或者让对方无路可走，也能赢哦！🎉
           </div>
 
-          <div style="font-size: 18px; font-weight: 900; color: #2e531f">
-            👑 战斗力大小排行（大吃小）：
+          <div class="rule-section-title">
+            👑 谁的力气更大？（大动物吃小动物）
           </div>
           <div class="rule-badge-list">
-            🐘 象(8) ＞ 🦁 狮(7) ＞ 🐯 虎(6) ＞ 🐆 豹(5) ＞ 🐺 狼(4) ＞ 🐶 狗(3)
-            ＞ 🐱 猫(2) ＞ 🐭 鼠(1)
+            🐘 大象(8) ＞ 🦁 狮子(7) ＞ 🐯 老虎(6) ＞ 🐆 豹子(5) ＞ 🐺 狼(4) ＞ 🐶 小狗(3)
+            ＞ 🐱 小猫(2) ＞ 🐭 小老鼠(1)
           </div>
 
-          <div
-            style="
-              background: #fff1d6;
-              padding: 12px 16px;
-              border-radius: 14px;
-              border-left: 5px solid #ffae19;
-            "
-          >
-            <strong>⭐ 秘密绝招（以弱胜强，生克循环）：</strong><br />
-            •
-            <strong>最小的小老鼠可以吃掉大象！</strong> 但大象无法吃老鼠。<br />
-            • 相同等级的动物相遇可以互吃。
+          <div class="rule-card rule-card-yellow">
+            <strong>⭐ 神奇秘籍（以小胜大）：</strong><br />
+            • <strong>小老鼠吃大象</strong>：别看小老鼠最小，它会钻大象的长鼻子，能吃掉威风的大象！但大象抓不到老鼠哦。<br />
+            • <strong>同级打平</strong>：相同动物力气一样大，谁先发起进攻谁就能吃掉对方！
           </div>
 
-          <div style="font-size: 18px; font-weight: 900; color: #2e531f">
-            🌊 小河与狮虎飞跃：
+          <div class="rule-section-title">
+            🌊 清凉小河与飞跃绝技：
           </div>
-          <div style="padding-left: 6px">
-            • 只有<strong>老鼠</strong>可以直接游入小河水中。<br />
-            • <strong>狮子和老虎</strong>可以神勇地横向或纵向跃过小河！<br />
-            • ⚠️ 如果河道正中有任何一方的老鼠戏水阻挡，狮虎将无法跃过。<br />
-            •
-            水中的小老鼠不能直接攻击陆地上的大象；陆地上的动物也抓不到水里潜水的老鼠。
-          </div>
-
-          <div style="font-size: 18px; font-weight: 900; color: #2e531f">
-            🪤 陷阱与兽穴：
-          </div>
-          <div style="padding-left: 6px">
-            • 掉进对方<strong>捕兽器陷阱</strong>的小动物战力直接降为
-            0，对方任何小动物都能吃掉它！<br />
-            • 任何小动物都<strong>绝对不能进入自己家的兽穴</strong>。
+          <div class="rule-indent-list">
+            • <strong>只有小老鼠会游泳</strong>：小老鼠可以直接跳进河里畅游，其他小动物怕水不能进河哦！🏊<br />
+            • <strong>狮子老虎会飞跃</strong>：狮子和老虎本领大，可以横着或竖着直接跳过小河！🦁🐯<br />
+            • ⚠️ <strong>有人游水不能跳</strong>：如果河道正中有小老鼠在玩水，就会挡住跳跃视线，狮虎就不能跳过去啦！<br />
+            • <strong>隔水互不侵犯</strong>：水里的小老鼠够不着岸上的大象，岸上的动物也抓不到水里潜水的小老鼠。
           </div>
 
-          <div
-            style="text-align: center; margin-top: 14px; padding-bottom: 20px"
-          >
-            <button
-              class="popup-btn"
-              id="btnBackToGame"
-              style="padding: 12px 48px; font-size: 18px"
-            >
-              我学会啦，返回对局！🎉
+          <div class="rule-section-title">
+            🪤 陷阱与兽穴小常识：
+          </div>
+          <div class="rule-indent-list">
+            • <strong>小心别掉进陷阱</strong>：掉进对方<strong>陷阱</strong>的小动物会晕乎乎失去力气，对方任何小动物都能吃掉它！😵‍💫<br />
+            • <strong>爱护自己的家</strong>：自己的小动物<strong>绝对不能走回自己的兽穴</strong>哦！
+          </div>
+
+          <div class="rules-action-area">
+            <button class="popup-btn rules-back-btn" id="btnBackToGame">
+              我学会啦，回森林玩耍！🎉
             </button>
           </div>
         </div>
@@ -1235,48 +1233,59 @@
 
     <!-- 获胜结算弹窗 -->
     <div class="modal-mask" id="winModal">
-      <div class="modal-card" style="text-align: center">
+      <div class="modal-card win-modal-card">
         <div class="washi-tape"></div>
-        <div style="font-size: 54px; margin: 12px 0" id="winIcon">🎉</div>
-        <h2
-          style="
-            font-size: 24px;
-            font-weight: 900;
-            color: #ff5e5e;
-            margin-bottom: 6px;
-          "
-          id="winTitle"
-        >
-          太棒啦！
-        </h2>
-        <p
-          style="
-            color: #4a3e31;
-            margin-bottom: 24px;
-            font-size: 16px;
-            font-weight: bold;
-          "
-          id="winReason"
-        >
-          成功攻占对方兽穴！
-        </p>
-        <button
-          class="popup-btn"
-          id="btnPlayAgain"
-          style="font-size: 16px; padding: 10px 32px"
-        >
+        <div class="win-icon" id="winIcon">🎉</div>
+        <h2 class="win-title" id="winTitle">太厉害啦！</h2>
+        <p class="win-reason" id="winReason">成功占领对方兽穴！</p>
+        <button class="popup-btn win-btn" id="btnPlayAgain">
           再玩一局 🎈
         </button>
       </div>
     </div>
 
     <script>
+      // ==========================================
+      // 1. 常量与规则配置
+      // ==========================================
       const COLS = 7;
       const ROWS = 9;
+      const LONG_PRESS_DURATION = 3000;
+      const RING_CIRCUMFERENCE = 135;
+      const GEAR_TIP_KEY = "animal_chess_gear_tip_shown_v1";
 
-      /* ==========================================================================
-       【剪纸童趣矢量图库】手作纸艺质感 (Paper-craft SVG Graphics)
-       ========================================================================== */
+      const DENS = {
+        blue: { x: 3, y: 0 },
+        red: { x: 3, y: 8 },
+      };
+
+      const TRAPS = {
+        blue: [
+          { x: 2, y: 0 },
+          { x: 4, y: 0 },
+          { x: 3, y: 1 },
+        ],
+        red: [
+          { x: 2, y: 8 },
+          { x: 4, y: 8 },
+          { x: 3, y: 7 },
+        ],
+      };
+
+      const ANIMAL_DEFS = {
+        elephant: { name: "象", rank: 8, type: "elephant" },
+        lion: { name: "狮", rank: 7, type: "lion" },
+        tiger: { name: "虎", rank: 6, type: "tiger" },
+        leopard: { name: "豹", rank: 5, type: "leopard" },
+        wolf: { name: "狼", rank: 4, type: "wolf" },
+        dog: { name: "狗", rank: 3, type: "dog" },
+        cat: { name: "猫", rank: 2, type: "cat" },
+        rat: { name: "鼠", rank: 1, type: "rat" },
+      };
+
+      // ==========================================
+      // 2. 剪纸矢量图库 (SVG Assets)
+      // ==========================================
       const ANIMAL_SVGS = {
         // 🐘 大象：温和小象、大耳朵、弯长鼻、层次丰富
         elephant: `
@@ -1483,11 +1492,9 @@
             <path d="M28 47 L36 47 L34 52 L27 51 Z" fill="#FFD54F" stroke="#FFA000" stroke-width="1.4"/>
             <circle cx="31" cy="49" r="0.9" fill="#FFA000"/>
           </svg>
-        `,
-      };
+        `,};
 
       const TERRAIN_SVGS = {
-        // 🌊 剪纸小河游鱼 (两条不同动态的小鱼与波纹)
         riverFish1: `
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- 浅蓝水波纹 -->
@@ -1514,8 +1521,13 @@
             <circle cx="39" cy="14" r="1.4" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>
           </svg>
         `,
-
-        // ⛰️ 兽穴大山：层叠剪纸山峦 + 神秘洞穴口 + 绿藤
+        trap: `<svg class="trap-svg-wrapper" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="20" stroke="#7A4E00" stroke-width="3" stroke-dasharray="3 2" fill="#E5AC2B"/>
+            <ellipse cx="24" cy="24" rx="16" ry="14" fill="#C98810" stroke="#5E3800" stroke-width="2"/>
+            <path d="M12 24 L16 16 L20 24 L24 15 L28 24 L32 16 L36 24" stroke="#4A2800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M12 24 L16 32 L20 24 L24 33 L28 24 L32 32 L36 24" stroke="#4A2800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <circle cx="24" cy="24" r="4.5" fill="#FFF2A3" stroke="#4A2800" stroke-width="1.8"/>
+          </svg>`,
         denMountain: `
           <svg viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- 远景深绿山峰 -->
@@ -1531,8 +1543,6 @@
             <circle cx="37" cy="44" r="2.5" fill="#A5D6A7"/>
           </svg>
         `,
-
-        // 🐾 走棋提示：可爱金黄小脚印
         pawHint: `
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <ellipse cx="20" cy="25" rx="8" ry="6.5" fill="#FFE082" stroke="#FF8F00" stroke-width="2"/>
@@ -1542,8 +1552,6 @@
             <circle cx="28" cy="14" r="3.2" fill="#FFE082" stroke="#FF8F00" stroke-width="1.6"/>
           </svg>
         `,
-
-        // 💥 吃子提示：剪纸撞击星芒与爆炸纸屑
         captureHint: `
           <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M22 2 L26 15 L40 12 L31 22 L42 30 L28 30 L26 44 L20 32 L8 40 L12 26 L2 22 L14 16 Z" fill="#FF5252" stroke="#D50000" stroke-width="2" stroke-linejoin="round"/>
@@ -1553,35 +1561,20 @@
         `,
       };
 
-      const ANIMAL_DEFS = {
-        elephant: { name: "象", rank: 8, type: "elephant" },
-        lion: { name: "狮", rank: 7, type: "lion" },
-        tiger: { name: "虎", rank: 6, type: "tiger" },
-        leopard: { name: "豹", rank: 5, type: "leopard" },
-        wolf: { name: "狼", rank: 4, type: "wolf" },
-        dog: { name: "狗", rank: 3, type: "dog" },
-        cat: { name: "猫", rank: 2, type: "cat" },
-        rat: { name: "鼠", rank: 1, type: "rat" },
+      // ==========================================
+      // 3. 游戏状态
+      // ==========================================
+      const gameState = {
+        pieces: [],
+        currentTurn: "red",
+        selectedPieceId: null,
+        isGameOver: false,
+        lastMove: null,
       };
 
-      const DENS = {
-        blue: { x: 3, y: 0 },
-        red: { x: 3, y: 8 },
-      };
-
-      const TRAPS = {
-        blue: [
-          { x: 2, y: 0 },
-          { x: 4, y: 0 },
-          { x: 3, y: 1 },
-        ],
-        red: [
-          { x: 2, y: 8 },
-          { x: 4, y: 8 },
-          { x: 3, y: 7 },
-        ],
-      };
-
+      // ==========================================
+      // 4. 地图与初始棋子工具函数
+      // ==========================================
       function isRiverCell(x, y) {
         return (
           (x >= 1 && x <= 2 && y >= 3 && y <= 5) ||
@@ -1603,6 +1596,10 @@
           TRAPS.blue.some((t) => t.x === x && t.y === y) ||
           TRAPS.red.some((t) => t.x === x && t.y === y)
         );
+      }
+
+      function getPieceAt(x, y) {
+        return gameState.pieces.find((p) => p.x === x && p.y === y);
       }
 
       function createInitialPieces() {
@@ -1629,21 +1626,9 @@
         ];
       }
 
-      let gameState = {
-        pieces: [],
-        currentTurn: "red",
-        selectedPieceId: null,
-        isGameOver: false,
-        lastMove: null,
-      };
-
-      function getPieceAt(x, y) {
-        return gameState.pieces.find((p) => p.x === x && p.y === y);
-      }
-
-      /* ==========================================================================
-       规则校验
-       ========================================================================== */
+      // ==========================================
+      // 5. 走棋规则校验
+      // ==========================================
       function validateMove(piece, targetX, targetY) {
         const fromX = piece.x;
         const fromY = piece.y;
@@ -1651,37 +1636,39 @@
         const dy = targetY - fromY;
         const dist = Math.abs(dx) + Math.abs(dy);
 
-        if (dx === 0 && dy === 0)
+        if (dx === 0 && dy === 0) {
           return {
             valid: false,
-            reason: "小动物已经在脚下啦，快选个新方格出发吧！🌱",
+            reason: "小动物已经在脚下啦，快选个新草地出发吧！🌱",
             icon: "🐾",
           };
-        if (dx !== 0 && dy !== 0)
+        }
+        if (dx !== 0 && dy !== 0) {
           return {
             valid: false,
             reason: "森林里的小路直直走，小动物不能斜着拐弯哦！🚸",
             icon: "🚸",
           };
-        if (isDen(targetX, targetY, piece.side))
+        }
+        if (isDen(targetX, targetY, piece.side)) {
           return {
             valid: false,
-            reason: "那是自己温暖的兽穴，不可以走进去哦！⛰️",
-            icon: "⛰️",
+            reason: "那是自己温馨的兽穴小窝，不可以走进去哦！🏠",
+            icon: "🏠",
           };
+        }
 
         const targetPiece = getPieceAt(targetX, targetY);
         if (targetPiece && targetPiece.side === piece.side) {
           return {
             valid: false,
-            reason: `前面是好伙伴【${ANIMAL_DEFS[targetPiece.type].name}】，小动物要团结，不能碰自己人哦！🤝`,
+            reason: `前面是好伙伴【${ANIMAL_DEFS[targetPiece.type].name}】，小伙伴要团结，不能碰自己人哦！🤝`,
             icon: "🤝",
           };
         }
 
         const fromInRiver = isRiverCell(fromX, fromY);
         const toInRiver = isRiverCell(targetX, targetY);
-
         const isLionOrTiger = piece.type === "lion" || piece.type === "tiger";
         let isJumpRiver = false;
 
@@ -1691,12 +1678,10 @@
             const r1 = fromX + stepX;
             const r2 = fromX + stepX * 2;
             if (isRiverCell(r1, fromY) && isRiverCell(r2, fromY)) {
-              const rat1 = getPieceAt(r1, fromY);
-              const rat2 = getPieceAt(r2, fromY);
-              if (rat1 || rat2) {
+              if (getPieceAt(r1, fromY) || getPieceAt(r2, fromY)) {
                 return {
                   valid: false,
-                  reason: "小河里有淘气的小老鼠在扑腾玩水，挡住跳河路线啦！🐭",
+                  reason: "小河里有淘气的小老鼠在戏水，挡住飞跃路线啦！🐭",
                   icon: "🐭",
                 };
               }
@@ -1712,13 +1697,14 @@
               isRiverCell(fromX, r2) &&
               isRiverCell(fromX, r3)
             ) {
-              const rat1 = getPieceAt(fromX, r1);
-              const rat2 = getPieceAt(fromX, r2);
-              const rat3 = getPieceAt(fromX, r3);
-              if (rat1 || rat2 || rat3) {
+              if (
+                getPieceAt(fromX, r1) ||
+                getPieceAt(fromX, r2) ||
+                getPieceAt(fromX, r3)
+              ) {
                 return {
                   valid: false,
-                  reason: "小河里有淘气的小老鼠在扑腾玩水，挡住跳河路线啦！🐭",
+                  reason: "小河里有淘气的小老鼠在戏水，挡住飞跃路线啦！🐭",
                   icon: "🌊",
                 };
               }
@@ -1738,7 +1724,7 @@
         if (toInRiver && piece.type !== "rat") {
           return {
             valid: false,
-            reason: `【${ANIMAL_DEFS[piece.type].name}】怕水不会游泳，只有聪明的小老鼠才能潜水哦！🫧`,
+            reason: `【${ANIMAL_DEFS[piece.type].name}】怕水不会游泳，只有灵巧的小老鼠才能潜水哦！🫧`,
             icon: "🚫",
           };
         }
@@ -1782,21 +1768,23 @@
         const isDefenderInEnemyTrap = isTrap(targetX, targetY, enemySide);
         if (isDefenderInEnemyTrap) return { can: true };
 
-        if (attacker.type === "rat" && defender.type === "elephant")
+        if (attacker.type === "rat" && defender.type === "elephant") {
           return { can: true };
+        }
         if (attacker.type === "elephant" && defender.type === "rat") {
           return {
             can: false,
-            reason: "大象伯伯体型胖嘟嘟，抓不住灵巧钻洞的小老鼠哦！🐭",
+            reason: "大象伯伯身形大，抓不住灵活钻洞的小老鼠哦！🐭",
           };
         }
 
         const atkRank = ANIMAL_DEFS[attacker.type].rank;
         const defRank = ANIMAL_DEFS[defender.type].rank;
         if (atkRank >= defRank) return { can: true };
+
         return {
           can: false,
-          reason: `【${ANIMAL_DEFS[attacker.type].name}】个头比【${ANIMAL_DEFS[defender.type].name}】小，力量还不够吃不下对方哦！🛡️`,
+          reason: `【${ANIMAL_DEFS[attacker.type].name}】力气比【${ANIMAL_DEFS[defender.type].name}】小，还吃不下对方哦！🛡️`,
         };
       }
 
@@ -1810,44 +1798,214 @@
         return moves;
       }
 
-      /* ==========================================================================
-       【要求】错误弹窗：点击确定才消失（无定时器）
-       ========================================================================== */
-      const ruleOverlay = document.getElementById("ruleOverlay");
-      const dialogIcon = document.getElementById("dialogIcon");
-      const dialogTitle = document.getElementById("dialogTitle");
-      const dialogBody = document.getElementById("dialogBody");
-      const dialogCard = document.querySelector(".paper-popup");
+      // ==========================================
+      // 6. 移动执行、吃子动画与胜负判定
+      // ==========================================
+      function playCaptureFlyAnimation(capturedPiece, fromX, fromY, toX, toY) {
+        const targetCell = getCellDOM(toX, toY);
+        if (!targetCell) return;
 
-      function showRuleViolation(reason, icon, side) {
-        const errorSide = side || gameState.currentTurn;
-        dialogIcon.textContent = icon || "🙈";
-        dialogBody.textContent = reason;
-        dialogTitle.textContent = `${errorSide === "red" ? "红方" : "蓝方"}小朋友请注意`;
-        if (errorSide === "blue") {
-          dialogCard.classList.add("blue-side");
-        } else {
-          dialogCard.classList.remove("blue-side");
+        const rect = targetCell.getBoundingClientRect();
+        const pieceWidth = rect.width * 0.86;
+        const pieceHeight = rect.height * 0.86;
+        const startLeft = rect.left + (rect.width - pieceWidth) / 2;
+        const startTop = rect.top + (rect.height - pieceHeight) / 2;
+
+        const flyEl = document.createElement("div");
+        flyEl.className = "flying-piece";
+        flyEl.dataset.side = capturedPiece.side;
+        flyEl.style.width = `${pieceWidth}px`;
+        flyEl.style.height = `${pieceHeight}px`;
+        flyEl.style.left = `${startLeft}px`;
+        flyEl.style.top = `${startTop}px`;
+        flyEl.innerHTML = createPieceInnerHtml(capturedPiece);
+        document.body.appendChild(flyEl);
+
+        let dx = toX - fromX;
+        let dy = toY - fromY;
+        if (dx === 0 && dy === 0) {
+          dy = capturedPiece.side === "blue" ? -1 : 1;
         }
-        ruleOverlay.style.display = "flex";
-        // 没有任何 setTimeout，用户必须手动点击按钮关闭
+        const flyAngle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.3;
+        const distance = Math.max(window.innerWidth, window.innerHeight) * 1.25;
+        const targetX = Math.cos(flyAngle) * distance;
+        const targetY = Math.sin(flyAngle) * distance;
+        const spin = (Math.random() > 0.5 ? 1 : -1) * 720;
+        const midX = targetX * 0.28;
+        const midY = targetY * 0.28 - 55;
+
+        const anim = flyEl.animate(
+          [
+            {
+              transform: "translate(0px, 0px) scale(1) rotate(0deg)",
+              opacity: 1,
+              offset: 0,
+            },
+            {
+              transform: `translate(${midX}px, ${midY}px) scale(1.2) rotate(${spin * 0.35}deg)`,
+              opacity: 1,
+              offset: 0.3,
+            },
+            {
+              transform: `translate(${targetX * 0.65}px, ${targetY * 0.65}px) scale(0.7) rotate(${spin * 0.75}deg)`,
+              opacity: 0.85,
+              offset: 0.7,
+            },
+            {
+              transform: `translate(${targetX}px, ${targetY}px) scale(0.2) rotate(${spin}deg)`,
+              opacity: 0,
+              offset: 1,
+            },
+          ],
+          {
+            duration: 1200,
+            easing: "cubic-bezier(0.18, 0.65, 0.35, 1)",
+            fill: "forwards",
+          },
+        );
+
+        anim.onfinish = () => flyEl.remove();
       }
 
-      function closeRuleViolation() {
-        ruleOverlay.style.display = "none";
-      }
-      document
-        .getElementById("dialogCloseBtn")
-        .addEventListener("click", closeRuleViolation);
+      function executeMove(piece, toX, toY) {
+        closeRuleViolation();
+        const fromX = piece.x;
+        const fromY = piece.y;
+        const targetPiece = getPieceAt(toX, toY);
 
-      /* ==========================================================================
-       棋盘初始化与渲染
-       ========================================================================== */
-      const chessboardEl = document.getElementById("chessboard");
+        gameState.lastMove = { fromX, fromY, toX, toY };
+
+        if (targetPiece) {
+          playCaptureFlyAnimation(targetPiece, fromX, fromY, toX, toY);
+          gameState.pieces = gameState.pieces.filter(
+            (p) => p.id !== targetPiece.id,
+          );
+        }
+
+        piece.x = toX;
+        piece.y = toY;
+        gameState.selectedPieceId = null;
+
+        if (checkWinConditions(piece, toX, toY)) {
+          renderPieces();
+          return;
+        }
+
+        gameState.currentTurn =
+          gameState.currentTurn === "red" ? "blue" : "red";
+        renderPieces();
+      }
+
+      function checkWinConditions(piece, toX, toY) {
+        const enemySide = piece.side === "red" ? "blue" : "red";
+        if (isDen(toX, toY, enemySide)) {
+          showWin(
+            piece.side,
+            `【${piece.side === "red" ? "红方" : "蓝方"}】的小动物成功占领了对方兽穴！👑`,
+          );
+          return true;
+        }
+
+        const enemyPieces = gameState.pieces.filter(
+          (p) => p.side === enemySide,
+        );
+        if (enemyPieces.length === 0) {
+          showWin(
+            piece.side,
+            `【${piece.side === "red" ? "红方" : "蓝方"}】吃光了对手所有小动物！🎈`,
+          );
+          return true;
+        }
+
+        const hasValidMove = enemyPieces.some(
+          (ep) => getValidMoves(ep).length > 0,
+        );
+        if (!hasValidMove) {
+          showWin(
+            piece.side,
+            `【${enemySide === "red" ? "红方" : "蓝方"}】的小动物无路可走啦！✨`,
+          );
+          return true;
+        }
+
+        return false;
+      }
+
+      function showWin(winnerSide, reason) {
+        gameState.isGameOver = true;
+        dom.winTitle.textContent = `${winnerSide === "red" ? "红方" : "蓝方"}大获全胜！`;
+        dom.winTitle.style.color =
+          winnerSide === "red" ? "#FF5E5E" : "#3F8CFF";
+        dom.winReason.textContent = reason;
+        dom.winModal.classList.add("show");
+      }
+
+      function resetGame() {
+        gameState.pieces = createInitialPieces();
+        gameState.currentTurn = "red";
+        gameState.selectedPieceId = null;
+        gameState.isGameOver = false;
+        gameState.lastMove = null;
+
+        dom.winModal.classList.remove("show");
+        dom.settingsModal.classList.remove("show");
+        dom.rulesModal.classList.remove("show");
+        closeRuleViolation();
+        renderPieces();
+      }
+
+      // ==========================================
+      // 7. DOM 缓存与渲染
+      // ==========================================
+      const dom = {
+        chessboard: document.getElementById("chessboard"),
+        floatingGear: document.getElementById("floatingGear"),
+        progressCircle: document.getElementById("progressCircle"),
+        gearGuideMask: document.getElementById("gearGuideMask"),
+        gearGuideCloseBtn: document.getElementById("gearGuideCloseBtn"),
+        ruleOverlay: document.getElementById("ruleOverlay"),
+        dialogCard: document.querySelector(".paper-popup"),
+        dialogIcon: document.getElementById("dialogIcon"),
+        dialogTitle: document.getElementById("dialogTitle"),
+        dialogBody: document.getElementById("dialogBody"),
+        dialogCloseBtn: document.getElementById("dialogCloseBtn"),
+        settingsModal: document.getElementById("settingsModal"),
+        closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+        rulesModal: document.getElementById("rulesModal"),
+        closeRulesBtn: document.getElementById("closeRulesBtn"),
+        btnBackToGame: document.getElementById("btnBackToGame"),
+        btnMenuRules: document.getElementById("btnMenuRules"),
+        btnMenuRestart: document.getElementById("btnMenuRestart"),
+        btnMenuFullscreen: document.getElementById("btnMenuFullscreen"),
+        fsBtnText: document.getElementById("fsBtnText"),
+        winModal: document.getElementById("winModal"),
+        winTitle: document.getElementById("winTitle"),
+        winReason: document.getElementById("winReason"),
+        btnPlayAgain: document.getElementById("btnPlayAgain"),
+      };
+
+      const cellGrid = [];
+
+      function getCellDOM(x, y) {
+        return cellGrid[y]?.[x] || null;
+      }
+
+      function createPieceInnerHtml(piece) {
+        const def = ANIMAL_DEFS[piece.type];
+        const animalSvg = ANIMAL_SVGS[piece.type] || "";
+        return `
+          <div class="piece-svg-wrapper">${animalSvg}</div>
+          <div class="piece-name">${def.name}</div>
+          <div class="piece-rank">${def.rank}</div>
+        `;
+      }
 
       function initBoardDOM() {
-        chessboardEl.innerHTML = "";
+        dom.chessboard.innerHTML = "";
+        cellGrid.length = 0;
+
         for (let y = 0; y < ROWS; y++) {
+          cellGrid[y] = [];
           for (let x = 0; x < COLS; x++) {
             const cell = document.createElement("div");
             cell.className = "cell";
@@ -1855,58 +2013,37 @@
             cell.dataset.y = y;
 
             if (isRiverCell(x, y)) {
-              // 【剪纸矢量小河】：灵动游鱼与水波纹
               cell.classList.add("river");
               const fishSvg =
                 (x + y) % 2 === 0
                   ? TERRAIN_SVGS.riverFish1
                   : TERRAIN_SVGS.riverFish2;
-              cell.innerHTML = `
-              <div class="terrain-decor river-svg-wrapper">
-                ${fishSvg}
-              </div>
-            `;
+              cell.innerHTML = `<div class="terrain-decor river-svg-wrapper">${fishSvg}</div>`;
             } else if (isTrap(x, y)) {
-              // 【要求】陷阱区域图案为醒目具象的剪纸风齿轮“捕兽器”
               cell.classList.add("trap");
-              if (isTrap(x, y, "blue")) {
-                cell.classList.add("blue-side");
-              }
+              if (isTrap(x, y, "blue")) cell.classList.add("blue-side");
               cell.innerHTML = `
-              <div class="terrain-decor">
-                <svg class="trap-svg-wrapper" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <!-- 捕兽器底座钢圈 -->
-                  <circle cx="24" cy="24" r="20" stroke="#7A4E00" stroke-width="3" stroke-dasharray="3 2" fill="#E5AC2B"/>
-                  <ellipse cx="24" cy="24" rx="16" ry="14" fill="#C98810" stroke="#5E3800" stroke-width="2"/>
-                  <!-- 捕兽器左右合拢铁锯齿 -->
-                  <path d="M12 24 L16 16 L20 24 L24 15 L28 24 L32 16 L36 24" stroke="#4A2800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                  <path d="M12 24 L16 32 L20 24 L24 33 L28 24 L32 32 L36 24" stroke="#4A2800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                  <!-- 中心踩踏感应圆盘 -->
-                  <circle cx="24" cy="24" r="4.5" fill="#FFF2A3" stroke="#4A2800" stroke-width="1.8"/>
-                </svg>
-                <span class="terrain-text">陷阱</span>
-              </div>
-            `;
+                <div class="terrain-decor">
+                  ${TERRAIN_SVGS.trap}
+                  <span class="terrain-text">陷阱</span>
+                </div>
+              `;
             } else if (isDen(x, y)) {
-              // 【剪纸矢量兽穴大山】：立体叠嶂山峦 + 洞穴
               cell.classList.add("den");
-              if (isDen(x, y, "blue")) {
-                cell.classList.add("blue-side");
-              }
+              if (isDen(x, y, "blue")) cell.classList.add("blue-side");
               cell.innerHTML = `
-              <div class="terrain-decor">
-                <div class="den-svg-wrapper">${TERRAIN_SVGS.denMountain}</div>
-                <span class="terrain-text">兽穴</span>
-              </div>
-            `;
-            } else {
-              if ((x * 7 + y) % 5 === 0) {
-                cell.classList.add("grass-decor");
-              }
+                <div class="terrain-decor">
+                  <div class="den-svg-wrapper">${TERRAIN_SVGS.denMountain}</div>
+                  <span class="terrain-text">兽穴</span>
+                </div>
+              `;
+            } else if ((x * 7 + y) % 5 === 0) {
+              cell.classList.add("grass-decor");
             }
 
             cell.addEventListener("click", () => onCellClicked(x, y));
-            chessboardEl.appendChild(cell);
+            dom.chessboard.appendChild(cell);
+            cellGrid[y][x] = cell;
           }
         }
       }
@@ -1951,22 +2088,23 @@
 
             getValidMoves(selected).forEach((m) => {
               const cell = getCellDOM(m.x, m.y);
-              const targetP = getPieceAt(m.x, m.y);
-              if (cell) {
-                const hintEl = document.createElement("div");
-                hintEl.className = "move-hint-indicator";
+              if (!cell) return;
 
-                if (targetP && targetP.side !== selected.side) {
-                  cell.classList.add("valid-capture");
-                  hintEl.classList.add("capture");
-                  hintEl.innerHTML = TERRAIN_SVGS.captureHint;
-                } else {
-                  cell.classList.add("valid-move");
-                  hintEl.classList.add("paw");
-                  hintEl.innerHTML = TERRAIN_SVGS.pawHint;
-                }
-                cell.appendChild(hintEl);
+              const targetP = getPieceAt(m.x, m.y);
+              const hintEl = document.createElement("div");
+              hintEl.className = "move-hint-indicator";
+              hintEl.dataset.side = selected.side;
+
+              if (targetP && targetP.side !== selected.side) {
+                cell.classList.add("valid-capture");
+                hintEl.classList.add("capture");
+                hintEl.innerHTML = TERRAIN_SVGS.captureHint;
+              } else {
+                cell.classList.add("valid-move");
+                hintEl.classList.add("paw");
+                hintEl.innerHTML = TERRAIN_SVGS.pawHint;
               }
+              cell.appendChild(hintEl);
             });
           }
         }
@@ -1981,11 +2119,11 @@
           pEl.dataset.side = p.side;
 
           if (!gameState.isGameOver) {
-            if (p.side === gameState.currentTurn) {
-              pEl.classList.add("turn-shaking");
-            } else {
-              pEl.classList.add("turn-waiting");
-            }
+            pEl.classList.add(
+              p.side === gameState.currentTurn
+                ? "turn-shaking"
+                : "turn-waiting",
+            );
           }
 
           if (p.id === gameState.selectedPieceId) {
@@ -1997,25 +2135,11 @@
             pEl.classList.add("trapped");
           }
 
-          const def = ANIMAL_DEFS[p.type];
-          const animalSvg = ANIMAL_SVGS[p.type] || "";
-          pEl.innerHTML = `
-          <div class="piece-svg-wrapper">${animalSvg}</div>
-          <div class="piece-name">${def.name}</div>
-          <div class="piece-rank">${def.rank}</div>
-        `;
-
+          pEl.innerHTML = createPieceInnerHtml(p);
           cell.appendChild(pEl);
         });
       }
 
-      function getCellDOM(x, y) {
-        return document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
-      }
-
-      /* ==========================================================================
-       交互走棋
-       ========================================================================== */
       function onCellClicked(x, y) {
         if (gameState.isGameOver) return;
         const clickedPiece = getPieceAt(x, y);
@@ -2060,199 +2184,43 @@
         executeMove(selectedPiece, x, y);
       }
 
-      /* ==========================================================================
-       【要求】吃子飞出棋盘消失动效
-       ========================================================================== */
-      function playCaptureFlyAnimation(capturedPiece, fromX, fromY, toX, toY) {
-        const targetCell = getCellDOM(toX, toY);
-        if (!targetCell) return;
-        const rect = targetCell.getBoundingClientRect();
-        const pieceWidth = rect.width * 0.86;
-        const pieceHeight = rect.height * 0.86;
-        const startLeft = rect.left + (rect.width - pieceWidth) / 2;
-        const startTop = rect.top + (rect.height - pieceHeight) / 2;
-
-        // 创建飞出的克隆棋子 (使用独立的 .flying-piece 类，不受棋盘重绘干扰)
-        const flyEl = document.createElement("div");
-        flyEl.className = "flying-piece";
-        flyEl.dataset.side = capturedPiece.side;
-        flyEl.style.width = `${pieceWidth}px`;
-        flyEl.style.height = `${pieceHeight}px`;
-        flyEl.style.left = `${startLeft}px`;
-        flyEl.style.top = `${startTop}px`;
-
-        const def = ANIMAL_DEFS[capturedPiece.type];
-        flyEl.innerHTML = `
-          <div class="piece-emoji">${def.emoji}</div>
-          <div class="piece-name">${def.name}</div>
-          <div class="piece-rank">${def.rank}</div>
-        `;
-        document.body.appendChild(flyEl);
-
-        // 计算飞离棋盘的方向向量 (沿吃子移动方向冲出棋盘)
-        let dx = toX - fromX;
-        let dy = toY - fromY;
-        if (dx === 0 && dy === 0) {
-          dy = capturedPiece.side === "blue" ? -1 : 1;
+      // ==========================================
+      // 8. 规则提示弹窗
+      // ==========================================
+      function showRuleViolation(reason, icon, side) {
+        const errorSide = side || gameState.currentTurn;
+        dom.dialogIcon.textContent = icon || "🙈";
+        dom.dialogBody.textContent = reason;
+        dom.dialogTitle.textContent = `${errorSide === "red" ? "红方" : "蓝方"}小朋友请注意`;
+        if (errorSide === "blue") {
+          dom.dialogCard.classList.add("blue-side");
+        } else {
+          dom.dialogCard.classList.remove("blue-side");
         }
-        const flyAngle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.3;
-
-        // 飞出距离保证完全越过视口飞出棋盘
-        const distance = Math.max(window.innerWidth, window.innerHeight) * 1.25;
-        const targetX = Math.cos(flyAngle) * distance;
-        const targetY = Math.sin(flyAngle) * distance;
-
-        // 飞出伴随空中自然旋转 720 度
-        const spin = (Math.random() > 0.5 ? 1 : -1) * 720;
-
-        // 抛物弧顶起伏与更从容平缓的飞出轨迹
-        const midX = targetX * 0.28;
-        const midY = targetY * 0.28 - 55;
-
-        const anim = flyEl.animate(
-          [
-            {
-              transform: "translate(0px, 0px) scale(1) rotate(0deg)",
-              opacity: 1,
-              offset: 0,
-            },
-            {
-              transform: `translate(${midX}px, ${midY}px) scale(1.2) rotate(${spin * 0.35}deg)`,
-              opacity: 1,
-              offset: 0.3,
-            },
-            {
-              transform: `translate(${targetX * 0.65}px, ${targetY * 0.65}px) scale(0.7) rotate(${spin * 0.75}deg)`,
-              opacity: 0.85,
-              offset: 0.7,
-            },
-            {
-              transform: `translate(${targetX}px, ${targetY}px) scale(0.2) rotate(${spin}deg)`,
-              opacity: 0,
-              offset: 1,
-            },
-          ],
-          {
-            duration: 1200,
-            easing: "cubic-bezier(0.18, 0.65, 0.35, 1)",
-            fill: "forwards",
-          },
-        );
-
-        anim.onfinish = () => {
-          flyEl.remove();
-        };
+        dom.ruleOverlay.style.display = "flex";
       }
 
-      function executeMove(piece, toX, toY) {
-        closeRuleViolation();
-        const fromX = piece.x;
-        const fromY = piece.y;
-        const targetPiece = getPieceAt(toX, toY);
-
-        gameState.lastMove = { fromX, fromY, toX, toY };
-
-        if (targetPiece) {
-          playCaptureFlyAnimation(targetPiece, fromX, fromY, toX, toY);
-          gameState.pieces = gameState.pieces.filter(
-            (p) => p.id !== targetPiece.id,
-          );
-        }
-
-        piece.x = toX;
-        piece.y = toY;
-        gameState.selectedPieceId = null;
-
-        if (checkWinConditions(piece, toX, toY)) {
-          renderPieces();
-          return;
-        }
-
-        gameState.currentTurn =
-          gameState.currentTurn === "red" ? "blue" : "red";
-        renderPieces();
+      function closeRuleViolation() {
+        dom.ruleOverlay.style.display = "none";
       }
 
-      function checkWinConditions(piece, toX, toY) {
-        const enemySide = piece.side === "red" ? "blue" : "red";
-        if (isDen(toX, toY, enemySide)) {
-          showWin(
-            piece.side,
-            `【${piece.side === "red" ? "红方" : "蓝方"}】的小动物成功攻克了对方兽穴！👑`,
-          );
-          return true;
-        }
-        const enemyPieces = gameState.pieces.filter(
-          (p) => p.side === enemySide,
-        );
-        if (enemyPieces.length === 0) {
-          showWin(
-            piece.side,
-            `【${piece.side === "red" ? "红方" : "蓝方"}】吃光了对手所有小动物！🎈`,
-          );
-          return true;
-        }
-        let hasValid = false;
-        for (const ep of enemyPieces) {
-          if (getValidMoves(ep).length > 0) {
-            hasValid = true;
-            break;
-          }
-        }
-        if (!hasValid) {
-          showWin(
-            piece.side,
-            `【${enemySide === "red" ? "红方" : "蓝方"}】无路可走啦！✨`,
-          );
-          return true;
-        }
-        return false;
-      }
+      dom.dialogCloseBtn.addEventListener("click", closeRuleViolation);
 
-      function showWin(winnerSide, reason) {
-        gameState.isGameOver = true;
-        document.getElementById("winTitle").textContent =
-          `${winnerSide === "red" ? "红方" : "蓝方"}大获全胜！`;
-        document.getElementById("winTitle").style.color =
-          winnerSide === "red" ? "#FF5E5E" : "#3F8CFF";
-        document.getElementById("winReason").textContent = reason;
-        document.getElementById("winModal").classList.add("show");
-      }
-
-      function resetGame() {
-        gameState.pieces = createInitialPieces();
-        gameState.currentTurn = "red";
-        gameState.selectedPieceId = null;
-        gameState.isGameOver = false;
-        gameState.lastMove = null;
-        document.getElementById("winModal").classList.remove("show");
-        document.getElementById("settingsModal").classList.remove("show");
-        document.getElementById("rulesModal").classList.remove("show");
-        closeRuleViolation();
-        renderPieces();
-      }
-
-      /* ==========================================================================
-       拖拽齿轮与长按3秒菜单
-       ========================================================================== */
-      const gear = document.getElementById("floatingGear");
-      const circle = document.getElementById("progressCircle");
-      const settingsModal = document.getElementById("settingsModal");
-      const CIRCUMFERENCE = 135;
-
+      // ==========================================
+      // 9. 齿轮悬浮球拖拽与长按交互
+      // ==========================================
       let isPointerPressed = false;
       let isDragging = false;
-      let pointerStartX = 0,
-        pointerStartY = 0;
-      let gearInitialLeft = 0,
-        gearInitialTop = 0;
+      let pointerStartX = 0;
+      let pointerStartY = 0;
+      let gearInitialLeft = 0;
+      let gearInitialTop = 0;
       let pressStartTime = 0;
       let animFrame = null;
-      const LONG_PRESS_DURATION = 3000;
 
       function setProgress(percent) {
-        const offset = CIRCUMFERENCE - percent * CIRCUMFERENCE;
-        circle.style.strokeDashoffset = Math.max(0, offset);
+        const offset = RING_CIRCUMFERENCE - percent * RING_CIRCUMFERENCE;
+        dom.progressCircle.style.strokeDashoffset = Math.max(0, offset);
       }
 
       function startLongPress() {
@@ -2269,7 +2237,7 @@
             animFrame = requestAnimationFrame(updateRing);
           } else {
             if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
-            settingsModal.classList.add("show");
+            dom.settingsModal.classList.add("show");
             cancelLongPress();
           }
         }
@@ -2281,9 +2249,8 @@
         setProgress(0);
       }
 
-      gear.addEventListener("pointerdown", (e) => {
+      dom.floatingGear.addEventListener("pointerdown", (e) => {
         if (e.button !== undefined && e.button !== 0) return;
-
         dismissGearGuide();
 
         isPointerPressed = true;
@@ -2291,15 +2258,15 @@
         pointerStartX = e.clientX;
         pointerStartY = e.clientY;
 
-        const rect = gear.getBoundingClientRect();
+        const rect = dom.floatingGear.getBoundingClientRect();
         gearInitialLeft = rect.left;
         gearInitialTop = rect.top;
 
-        gear.setPointerCapture(e.pointerId);
+        dom.floatingGear.setPointerCapture(e.pointerId);
         startLongPress();
       });
 
-      gear.addEventListener("pointermove", (e) => {
+      dom.floatingGear.addEventListener("pointermove", (e) => {
         if (!isPointerPressed) return;
 
         const deltaX = e.clientX - pointerStartX;
@@ -2311,18 +2278,15 @@
         }
 
         if (isDragging) {
-          let newX = gearInitialLeft + deltaX;
-          let newY = gearInitialTop + deltaY;
+          const maxX = window.innerWidth - dom.floatingGear.offsetWidth - 4;
+          const maxY = window.innerHeight - dom.floatingGear.offsetHeight - 4;
+          const newX = Math.max(4, Math.min(maxX, gearInitialLeft + deltaX));
+          const newY = Math.max(4, Math.min(maxY, gearInitialTop + deltaY));
 
-          const maxX = window.innerWidth - gear.offsetWidth - 4;
-          const maxY = window.innerHeight - gear.offsetHeight - 4;
-          newX = Math.max(4, Math.min(maxX, newX));
-          newY = Math.max(4, Math.min(maxY, newY));
-
-          gear.style.left = `${newX}px`;
-          gear.style.top = `${newY}px`;
-          gear.style.right = "auto";
-          gear.style.bottom = "auto";
+          dom.floatingGear.style.left = `${newX}px`;
+          dom.floatingGear.style.top = `${newY}px`;
+          dom.floatingGear.style.right = "auto";
+          dom.floatingGear.style.bottom = "auto";
         }
       });
 
@@ -2330,96 +2294,94 @@
         if (!isPointerPressed) return;
         isPointerPressed = false;
         try {
-          gear.releasePointerCapture(e.pointerId);
+          dom.floatingGear.releasePointerCapture(e.pointerId);
         } catch (err) {}
         cancelLongPress();
         isDragging = false;
       }
 
-      gear.addEventListener("pointerup", finishPointerInteraction);
-      gear.addEventListener("pointercancel", finishPointerInteraction);
+      dom.floatingGear.addEventListener("pointerup", finishPointerInteraction);
+      dom.floatingGear.addEventListener(
+        "pointercancel",
+        finishPointerInteraction,
+      );
 
-      // 菜单功能
-      document
-        .getElementById("closeSettingsBtn")
-        .addEventListener("click", () => {
-          settingsModal.classList.remove("show");
-        });
-
-      const rulesModal = document.getElementById("rulesModal");
-      document.getElementById("btnMenuRules").addEventListener("click", () => {
-        settingsModal.classList.remove("show");
-        rulesModal.classList.add("show");
-      });
-      document.getElementById("closeRulesBtn").addEventListener("click", () => {
-        rulesModal.classList.remove("show");
-      });
-      document.getElementById("btnBackToGame").addEventListener("click", () => {
-        rulesModal.classList.remove("show");
+      // ==========================================
+      // 10. 菜单、弹窗与全屏控制
+      // ==========================================
+      dom.closeSettingsBtn.addEventListener("click", () => {
+        dom.settingsModal.classList.remove("show");
       });
 
-      document
-        .getElementById("btnMenuRestart")
-        .addEventListener("click", () => {
-          if (confirm("确定要重新开一局吗？🌱")) resetGame();
-        });
+      dom.btnMenuRules.addEventListener("click", () => {
+        dom.settingsModal.classList.remove("show");
+        dom.rulesModal.classList.add("show");
+      });
 
-      const fsBtn = document.getElementById("btnMenuFullscreen");
-      const fsBtnText = document.getElementById("fsBtnText");
-      fsBtn.addEventListener("click", () => {
+      dom.closeRulesBtn.addEventListener("click", () => {
+        dom.rulesModal.classList.remove("show");
+      });
+
+      dom.btnBackToGame.addEventListener("click", () => {
+        dom.rulesModal.classList.remove("show");
+      });
+
+      dom.btnMenuRestart.addEventListener("click", () => {
+        if (confirm("确定要重新开一局吗？🌱")) resetGame();
+      });
+
+      dom.btnPlayAgain.addEventListener("click", resetGame);
+
+      dom.btnMenuFullscreen.addEventListener("click", () => {
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(() => {});
         } else {
           document.exitFullscreen().catch(() => {});
         }
       });
+
       document.addEventListener("fullscreenchange", () => {
-        if (fsBtnText) {
-          fsBtnText.textContent = document.fullscreenElement
+        if (dom.fsBtnText) {
+          dom.fsBtnText.textContent = document.fullscreenElement
             ? "⛶ 退出全屏"
             : "⛶ 铺满全屏";
         }
       });
 
-      document
-        .getElementById("btnPlayAgain")
-        .addEventListener("click", resetGame);
-
-      initBoardDOM();
-      resetGame();
-
-      /* ==========================================================================
-       首次进入页面提示引导 (长按设置圆点3秒进入设置)
-       ========================================================================== */
-      const GEAR_TIP_KEY = "animal_chess_gear_tip_shown_v1";
-      const gearGuideMask = document.getElementById("gearGuideMask");
-      const gearGuideCloseBtn = document.getElementById("gearGuideCloseBtn");
-
+      // ==========================================
+      // 11. 首次进入引导提示
+      // ==========================================
       function showGearGuide() {
-        if (!gearGuideMask) return;
-        gearGuideMask.classList.add("show");
-        gear.classList.add("guide-highlight");
+        if (!dom.gearGuideMask) return;
+        dom.gearGuideMask.classList.add("show");
+        dom.floatingGear.classList.add("guide-highlight");
       }
 
       function dismissGearGuide() {
-        if (!gearGuideMask) return;
-        gearGuideMask.classList.remove("show");
-        gear.classList.remove("guide-highlight");
+        if (!dom.gearGuideMask) return;
+        dom.gearGuideMask.classList.remove("show");
+        dom.floatingGear.classList.remove("guide-highlight");
         try {
           localStorage.setItem(GEAR_TIP_KEY, "true");
         } catch (e) {}
       }
 
-      if (gearGuideCloseBtn) {
-        gearGuideCloseBtn.addEventListener("click", dismissGearGuide);
+      if (dom.gearGuideCloseBtn) {
+        dom.gearGuideCloseBtn.addEventListener("click", dismissGearGuide);
       }
-      if (gearGuideMask) {
-        gearGuideMask.addEventListener("click", (e) => {
-          if (e.target === gearGuideMask) dismissGearGuide();
+
+      if (dom.gearGuideMask) {
+        dom.gearGuideMask.addEventListener("click", (e) => {
+          if (e.target === dom.gearGuideMask) dismissGearGuide();
         });
       }
 
-      // 首次进入页面判断并提示
+      // ==========================================
+      // 12. 初始化执行
+      // ==========================================
+      initBoardDOM();
+      resetGame();
+
       try {
         if (!localStorage.getItem(GEAR_TIP_KEY)) {
           setTimeout(showGearGuide, 350);
