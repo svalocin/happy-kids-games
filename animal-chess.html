@@ -6,6 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
     <title>欢乐斗兽棋</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap");
@@ -120,15 +121,29 @@
       }
 
       /* 普通草地装饰点缀 */
-      .cell.grass-decor::after {
-        content: "🌿";
-        font-size: 11px;
+      .cell.grass-decor::after,
+      .cell.grass-decor-alt::after {
+        content: "";
         position: absolute;
-        bottom: 3px;
-        right: 3px;
-        opacity: 0.25;
+        bottom: 2px;
+        right: 2px;
+        width: clamp(16px, min(4.6vw, 3vh), 26px);
+        height: clamp(16px, min(4.6vw, 3vh), 26px);
+        background-image: url("images/animal-chess/grass.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: bottom right;
+        opacity: 0.52;
         pointer-events: none;
-        line-height: 1;
+        z-index: 1;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+      }
+
+      .cell.grass-decor-alt::after {
+        right: auto;
+        left: 2px;
+        transform: scaleX(-1);
+        opacity: 0.42;
       }
 
       .terrain-decor {
@@ -145,12 +160,13 @@
 
       /* 剪纸小河 */
       .cell.river {
-        background-color: var(--river-blue);
+        background: linear-gradient(180deg, #4cbbe8 0%, #36a4d7 100%);
         border: 2px dashed rgba(255, 255, 255, 0.7);
         border-radius: 12px;
         margin: 1.5px;
         box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.15);
       }
+      .river-decor,
       .river-svg-wrapper {
         width: 100%;
         height: 100%;
@@ -158,28 +174,67 @@
         align-items: center;
         justify-content: center;
       }
+      .river-img {
+        width: 82%;
+        height: 82%;
+        max-width: 58px;
+        max-height: 58px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0, 40, 80, 0.26));
+        animation: fishFloat 2.6s infinite ease-in-out alternate;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
       .river-svg-wrapper svg {
         width: min(10vw, 50px);
         height: min(10vw, 50px);
         filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
-        animation: fishSwim 3s infinite ease-in-out alternate;
+        animation: fishFloat 3s infinite ease-in-out alternate;
       }
-      @keyframes fishSwim {
+      @keyframes fishFloat {
         0% {
-          transform: translateX(-4px) rotate(-5deg);
+          transform: translateY(-2px) rotate(-3deg);
         }
         100% {
-          transform: translateX(4px) rotate(5deg);
+          transform: translateY(2px) rotate(3deg);
         }
+      }
+      .cell[data-x="2"] .river-img,
+      .cell[data-x="5"] .river-img {
+        animation-delay: -1.3s;
+        transform: scaleX(-1);
       }
 
       /* 陷阱区域图案 */
       .cell.trap {
-        background-color: var(--trap-bg);
+        background: radial-gradient(
+          circle at 50% 50%,
+          #fbd561 0%,
+          #ebb93f 100%
+        );
         border-radius: 14px;
         margin: 1.5px;
         border: 2.5px dashed #b88915;
         box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.14);
+      }
+      .trap-decor {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .trap-img {
+        width: 74%;
+        height: 74%;
+        max-width: 50px;
+        max-height: 50px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 3px rgba(80, 50, 0, 0.3));
+        animation: trapSpring 2.4s infinite ease-in-out alternate;
+        user-select: none;
+        -webkit-user-drag: none;
       }
       .trap-svg-wrapper {
         width: min(9.5vw, 48px);
@@ -188,27 +243,28 @@
         animation: trapSpring 2.2s infinite ease-in-out alternate;
       }
       .cell.trap .terrain-text {
-        font-size: min(3vw, 13.5px);
+        font-size: clamp(10px, min(2.8vw, 1.8vh), 13px);
         font-weight: 900;
         color: #724300;
         background: rgba(255, 255, 255, 0.95);
-        padding: 1px 7px;
-        border-radius: 8px;
+        padding: 0px 6px;
+        border-radius: 6px;
         border: 1px dashed #b87a00;
-        transform: rotate(-2deg);
-        margin-top: 1px;
+        margin-top: -3px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        line-height: 1.2;
+        z-index: 2;
       }
       @keyframes trapSpring {
         0% {
-          transform: scale(0.96) rotate(-4deg);
+          transform: scale(0.96) rotate(-3deg);
         }
         100% {
-          transform: scale(1.06) rotate(4deg);
+          transform: scale(1.05) rotate(3deg);
         }
       }
 
-      /* 兽穴大山图案 */
+      /* 兽穴大山洞穴图案 */
       .cell.den {
         background: radial-gradient(
           circle at 50% 60%,
@@ -220,11 +276,30 @@
         border: 2.5px dashed #2e531f;
         box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.25);
       }
+      .den-decor {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .den-img {
+        width: 82%;
+        height: 82%;
+        max-width: 58px;
+        max-height: 58px;
+        object-fit: contain;
+        filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
+        animation: denGlow 2.8s infinite ease-in-out alternate;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
       .den-svg-wrapper {
         width: min(10.5vw, 54px);
         height: min(10.5vw, 54px);
         filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.35));
-        animation: mountainPeak 2.8s infinite ease-in-out alternate;
+        animation: denGlow 2.8s infinite ease-in-out alternate;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -234,24 +309,26 @@
         height: 100%;
       }
       .cell.den .terrain-text {
-        font-size: min(3.4vw, 15px);
+        font-size: clamp(10px, min(3vw, 2vh), 14px);
         font-weight: 900;
         color: #ffffff;
         background: #395d26;
-        padding: 1px 8px;
-        border-radius: 10px;
+        padding: 0px 7px;
+        border-radius: 8px;
         border: 1.5px solid #ffffff;
-        transform: rotate(1deg);
         margin-top: -6px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         z-index: 2;
+        line-height: 1.2;
       }
-      @keyframes mountainPeak {
+      @keyframes denGlow {
         0% {
-          transform: translateY(-1px) scale(0.98);
+          transform: scale(0.97);
+          filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
         }
         100% {
-          transform: translateY(2px) scale(1.04);
+          transform: scale(1.03);
+          filter: drop-shadow(0 4px 8px rgba(255, 215, 0, 0.35));
         }
       }
 
@@ -461,33 +538,50 @@
           0 0 18px #ffd54f !important;
       }
 
+      .piece-avatar-wrapper,
       .piece-svg-wrapper {
-        width: min(9.2vw, 48px);
-        height: min(9.2vw, 48px);
+        width: 66%;
+        height: 66%;
+        max-width: 66px;
+        max-height: 66px;
         display: flex;
         align-items: center;
         justify-content: center;
-        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
-        margin-bottom: 0px;
+        position: relative;
         transition: transform 0.2s;
       }
+
+      .piece-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .piece-avatar-wrapper svg,
       .piece-svg-wrapper svg {
         width: 100%;
         height: 100%;
       }
 
       .piece-name {
-        font-size: min(3.5vw, 15px);
+        font-size: clamp(11px, min(3.3vw, 2.2vh), 16px);
         font-weight: 900;
         line-height: 1;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
         transition: transform 0.2s;
+        margin-top: 1px;
       }
 
       /* 蓝方棋子朝向面向对方 (旋转180度) */
+      .piece[data-side="blue"] .piece-avatar-wrapper,
       .piece[data-side="blue"] .piece-svg-wrapper,
       .piece[data-side="blue"] .piece-name,
+      .flying-piece[data-side="blue"] .piece-avatar-wrapper,
       .flying-piece[data-side="blue"] .piece-svg-wrapper,
       .flying-piece[data-side="blue"] .piece-name {
         transform: rotate(180deg);
@@ -498,18 +592,18 @@
         position: absolute;
         top: -6px;
         right: -6px;
-        width: min(5vw, 22px);
-        height: min(5vw, 22px);
+        width: clamp(18px, min(5vw, 3vh), 24px);
+        height: clamp(18px, min(5vw, 3vh), 24px);
         background: #ffd152;
         color: #613c00;
-        font-size: min(3.2vw, 13px);
+        font-size: clamp(11px, min(3.2vw, 1.9vh), 14px);
         font-weight: 900;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         border: 2px solid #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22);
       }
 
       .piece[data-side="blue"] .piece-rank,
@@ -521,6 +615,7 @@
         left: -6px;
       }
 
+      /* 陷阱受困状态提示 */
       .piece.trapped::after {
         content: "😵‍💫";
         position: absolute;
@@ -530,6 +625,57 @@
         background: #ffffff;
         border-radius: 50%;
         border: 1px solid #ccc;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        animation: trappedDizzy 1.5s infinite ease-in-out;
+      }
+
+      .piece[data-side="blue"].trapped::after {
+        bottom: auto;
+        left: auto;
+        top: -6px;
+        right: -6px;
+      }
+
+      @keyframes trappedDizzy {
+        0%,
+        100% {
+          transform: rotate(0deg) scale(1);
+        }
+        50% {
+          transform: rotate(15deg) scale(1.1);
+        }
+      }
+
+      /* 小老鼠在河里游泳特效 */
+      .cell.river .piece {
+        box-shadow:
+          0 4px 0 var(--paper-shadow-color),
+          0 0 12px rgba(85, 188, 231, 0.95),
+          0 8px 12px rgba(0, 0, 0, 0.2);
+      }
+      .cell.river .piece::before {
+        content: "🫧";
+        position: absolute;
+        top: -6px;
+        left: -6px;
+        font-size: 13px;
+        pointer-events: none;
+        z-index: 15;
+        animation: bubbleFloat 1.8s infinite ease-in-out alternate;
+      }
+      .cell.river .piece[data-side="blue"]::before {
+        top: auto;
+        bottom: -6px;
+        left: auto;
+        right: -6px;
+      }
+      @keyframes bubbleFloat {
+        0% {
+          transform: translateY(0) scale(0.9);
+        }
+        100% {
+          transform: translateY(-3px) scale(1.2);
+        }
       }
 
       /* 吃子飞出棋盘动效元素 */
@@ -541,7 +687,7 @@
         will-change: transform, opacity;
       }
 
-      /* 半透明齿轮悬浮球 */
+      /* 半透明齿轮悬浮球 (屏幕空间不足时可半透明悬浮在棋盘上，不阻挡视线) */
       .floating-gear {
         position: fixed;
         top: 14px;
@@ -565,6 +711,10 @@
           opacity 0.25s,
           background 0.2s,
           border-color 0.2s;
+      }
+      .floating-gear.on-board {
+        opacity: 0.32;
+        background: rgba(255, 255, 255, 0.28);
       }
       .floating-gear:hover,
       .floating-gear:active {
@@ -1016,6 +1166,67 @@
         line-height: 1.7;
       }
 
+      .rule-animal-ranks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+        align-items: center;
+        background: #f2faee;
+        padding: 12px 8px;
+        border-radius: 18px;
+        border: 2.5px dashed #a8d098;
+      }
+      .rule-animal-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #ffffff;
+        border: 2px solid #cde5c4;
+        border-radius: 12px;
+        padding: 6px 6px;
+        min-width: 52px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        transition: transform 0.15s;
+      }
+      .rule-animal-card:hover {
+        transform: translateY(-2px);
+      }
+      .rule-animal-card img {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+      }
+      .rule-animal-card .rule-aname {
+        font-size: 12.5px;
+        font-weight: 900;
+        color: #385e28;
+        margin-top: 2px;
+        line-height: 1.1;
+      }
+      .rule-animal-card .rule-arank {
+        font-size: 10.5px;
+        background: #ffd152;
+        color: #613c00;
+        padding: 0px 6px;
+        border-radius: 10px;
+        font-weight: 900;
+        margin-top: 2px;
+      }
+      .rule-rank-arrow {
+        font-size: 15px;
+        font-weight: 900;
+        color: #79a667;
+      }
+      .rule-inline-icon {
+        width: 24px;
+        height: 24px;
+        vertical-align: -4px;
+        object-fit: contain;
+        margin: 0 3px;
+        display: inline-block;
+      }
+
       .rule-indent-list {
         padding-left: 6px;
       }
@@ -1130,7 +1341,9 @@
           <div class="gear-guide-desc">
             按住这里<strong>3秒钟</strong>，就能打开设置小口袋啦！
           </div>
-          <div class="gear-guide-sub">✨ 按住小齿轮，还可以把它拖到任何喜欢的地方哦~</div>
+          <div class="gear-guide-sub">
+            ✨ 按住小齿轮，还可以把它拖到任何喜欢的地方哦~
+          </div>
           <button class="gear-guide-btn" id="gearGuideCloseBtn">
             我知道啦 ✨
           </button>
@@ -1183,43 +1396,144 @@
         </div>
         <div class="rules-scroll-body">
           <div class="rule-section-title">
-            🏆 怎么赢下比赛？
+            <img
+              src="images/animal-chess/den.png"
+              class="rule-inline-icon"
+              alt=""
+            />
+            怎么赢下比赛？
           </div>
           <div class="rule-card rule-card-green">
-            1. <strong>进兽穴</strong>：只要有任何一只小动物跑进对方的<strong>【兽穴】</strong>，就立刻获胜啦！🏰<br />
-            2. <strong>大团圆</strong>：吃光对方所有小动物，或者让对方无路可走，也能赢哦！🎉
+            1.
+            <strong>进兽穴</strong
+            >：只要有任何一只小动物跑进对方的<strong>【兽穴】</strong>，就立刻获胜啦！🏰<br />
+            2.
+            <strong>大团圆</strong
+            >：吃光对方所有小动物，或者让对方无路可走，也能赢哦！🎉
           </div>
 
           <div class="rule-section-title">
             👑 谁的力气更大？（大动物吃小动物）
           </div>
-          <div class="rule-badge-list">
-            🐘 大象(8) ＞ 🦁 狮子(7) ＞ 🐯 老虎(6) ＞ 🐆 豹子(5) ＞ 🐺 狼(4) ＞ 🐶 小狗(3)
-            ＞ 🐱 小猫(2) ＞ 🐭 小老鼠(1)
+          <div class="rule-animal-ranks">
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/elephant.png" alt="象" />
+              <span class="rule-aname">大象</span>
+              <span class="rule-arank">8</span>
+            </div>
+            <span class="rule-rank-arrow">＞</span>
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/lion.png" alt="狮" />
+              <span class="rule-aname">狮子</span>
+              <span class="rule-arank">7</span>
+            </div>
+            <span class="rule-rank-arrow">＞</span>
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/tiger.png" alt="虎" />
+              <span class="rule-aname">老虎</span>
+              <span class="rule-arank">6</span>
+            </div>
+            <span class="rule-rank-arrow">＞</span>
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/leopard.png" alt="豹" />
+              <span class="rule-aname">豹子</span>
+              <span class="rule-arank">5</span>
+            </div>
+            <span class="rule-rank-arrow">＞</span>
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/wolf.png" alt="狼" />
+              <span class="rule-aname">狼</span>
+              <span class="rule-arank">4</span>
+            </div>
+            <span class="rule-rank-arrow">＞</span>
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/dog.png" alt="狗" />
+              <span class="rule-aname">小狗</span>
+              <span class="rule-arank">3</span>
+            </div>
+            <span class="rule-rank-arrow">＞</span>
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/cat.png" alt="猫" />
+              <span class="rule-aname">小猫</span>
+              <span class="rule-arank">2</span>
+            </div>
+            <span class="rule-rank-arrow">＞</span>
+            <div class="rule-animal-card">
+              <img src="images/animal-chess/mouse.png" alt="鼠" />
+              <span class="rule-aname">老鼠</span>
+              <span class="rule-arank">1</span>
+            </div>
           </div>
 
           <div class="rule-card rule-card-yellow">
-            <strong>⭐ 神奇秘籍（以小胜大）：</strong><br />
-            • <strong>小老鼠吃大象</strong>：别看小老鼠最小，它会钻大象的长鼻子，能吃掉威风的大象！但大象抓不到老鼠哦。<br />
-            • <strong>同级打平</strong>：相同动物力气一样大，谁先发起进攻谁就能吃掉对方！
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 6px;
+              "
+            >
+              <img
+                src="images/animal-chess/mouse.png"
+                class="rule-inline-icon"
+                alt="鼠"
+                style="width: 28px; height: 28px"
+              />
+              <strong>⭐ 神奇秘籍（以小胜大）：</strong>
+              <img
+                src="images/animal-chess/elephant.png"
+                class="rule-inline-icon"
+                alt="象"
+                style="width: 28px; height: 28px"
+              />
+            </div>
+            •
+            <strong>小老鼠吃大象</strong
+            >：别看小老鼠最小，它会钻大象的长鼻子，能吃掉威风的大象！但大象抓不到老鼠哦。<br />
+            •
+            <strong>同级打平</strong
+            >：相同动物力气一样大，谁先发起进攻谁就能吃掉对方！
           </div>
 
           <div class="rule-section-title">
-            🌊 清凉小河与飞跃绝技：
+            <img
+              src="images/animal-chess/river.png"
+              class="rule-inline-icon"
+              alt=""
+            />
+            清凉小河与飞跃绝技：
           </div>
           <div class="rule-indent-list">
-            • <strong>只有小老鼠会游泳</strong>：小老鼠可以直接跳进河里畅游，其他小动物怕水不能进河哦！🏊<br />
-            • <strong>狮子老虎会飞跃</strong>：狮子和老虎本领大，可以横着或竖着直接跳过小河！🦁🐯<br />
-            • ⚠️ <strong>有人游水不能跳</strong>：如果河道正中有小老鼠在玩水，就会挡住跳跃视线，狮虎就不能跳过去啦！<br />
-            • <strong>隔水互不侵犯</strong>：水里的小老鼠够不着岸上的大象，岸上的动物也抓不到水里潜水的小老鼠。
+            •
+            <strong>只有小老鼠会游泳</strong
+            >：小老鼠可以直接跳进河里畅游，其他小动物怕水不能进河哦！🏊<br />
+            •
+            <strong>狮子老虎会飞跃</strong
+            >：狮子和老虎本领大，可以横着或竖着直接跳过小河！🦁🐯<br />
+            • ⚠️
+            <strong>有人游水不能跳</strong
+            >：如果河道正中有小老鼠在玩水，就会挡住跳跃视线，狮虎就不能跳过去啦！<br />
+            •
+            <strong>隔水互不侵犯</strong
+            >：水里的小老鼠够不着岸上的大象，岸上的动物也抓不到水里潜水的小老鼠。
           </div>
 
           <div class="rule-section-title">
-            🪤 陷阱与兽穴小常识：
+            <img
+              src="images/animal-chess/trap.png"
+              class="rule-inline-icon"
+              alt=""
+            />
+            陷阱与兽穴小常识：
           </div>
           <div class="rule-indent-list">
-            • <strong>小心别掉进陷阱</strong>：掉进对方<strong>陷阱</strong>的小动物会晕乎乎失去力气，对方任何小动物都能吃掉它！😵‍💫<br />
-            • <strong>爱护自己的家</strong>：自己的小动物<strong>绝对不能走回自己的兽穴</strong>哦！
+            •
+            <strong>小心别掉进陷阱</strong
+            >：掉进对方<strong>陷阱</strong>的小动物会晕乎乎失去力气，对方任何小动物都能吃掉它！😵‍💫<br />
+            •
+            <strong>爱护自己的家</strong
+            >：自己的小动物<strong>绝对不能走回自己的兽穴</strong>哦！
           </div>
 
           <div class="rules-action-area">
@@ -1238,9 +1552,7 @@
         <div class="win-icon" id="winIcon">🎉</div>
         <h2 class="win-title" id="winTitle">太厉害啦！</h2>
         <p class="win-reason" id="winReason">成功占领对方兽穴！</p>
-        <button class="popup-btn win-btn" id="btnPlayAgain">
-          再玩一局 🎈
-        </button>
+        <button class="popup-btn win-btn" id="btnPlayAgain">再玩一局 🎈</button>
       </div>
     </div>
 
@@ -1282,6 +1594,35 @@
         cat: { name: "猫", rank: 2, type: "cat" },
         rat: { name: "鼠", rank: 1, type: "rat" },
       };
+
+      // ==========================================
+      // 1.5 高清视觉资产图库 (PNG Image Assets)
+      // ==========================================
+      const ANIMAL_IMAGES = {
+        elephant: "images/animal-chess/elephant.png",
+        lion: "images/animal-chess/lion.png",
+        tiger: "images/animal-chess/tiger.png",
+        leopard: "images/animal-chess/leopard.png",
+        wolf: "images/animal-chess/wolf.png",
+        dog: "images/animal-chess/dog.png",
+        cat: "images/animal-chess/cat.png",
+        rat: "images/animal-chess/mouse.png",
+      };
+
+      const TERRAIN_IMAGES = {
+        river: "images/animal-chess/river.png",
+        trap: "images/animal-chess/trap.png",
+        den: "images/animal-chess/den.png",
+        grass: "images/animal-chess/grass.png",
+      };
+
+      // 预加载所有美术贴图资源，避免网络/缓存延迟导致初次渲染闪烁
+      Object.values(ANIMAL_IMAGES)
+        .concat(Object.values(TERRAIN_IMAGES))
+        .forEach((src) => {
+          const img = new Image();
+          img.src = src;
+        });
 
       // ==========================================
       // 2. 剪纸矢量图库 (SVG Assets)
@@ -1492,7 +1833,8 @@
             <path d="M28 47 L36 47 L34 52 L27 51 Z" fill="#FFD54F" stroke="#FFA000" stroke-width="1.4"/>
             <circle cx="31" cy="49" r="0.9" fill="#FFA000"/>
           </svg>
-        `,};
+        `,
+      };
 
       const TERRAIN_SVGS = {
         riverFish1: `
@@ -1934,8 +2276,7 @@
       function showWin(winnerSide, reason) {
         gameState.isGameOver = true;
         dom.winTitle.textContent = `${winnerSide === "red" ? "红方" : "蓝方"}大获全胜！`;
-        dom.winTitle.style.color =
-          winnerSide === "red" ? "#FF5E5E" : "#3F8CFF";
+        dom.winTitle.style.color = winnerSide === "red" ? "#FF5E5E" : "#3F8CFF";
         dom.winReason.textContent = reason;
         dom.winModal.classList.add("show");
       }
@@ -1992,9 +2333,13 @@
 
       function createPieceInnerHtml(piece) {
         const def = ANIMAL_DEFS[piece.type];
+        const imgSrc = ANIMAL_IMAGES[piece.type];
         const animalSvg = ANIMAL_SVGS[piece.type] || "";
         return `
-          <div class="piece-svg-wrapper">${animalSvg}</div>
+          <div class="piece-avatar-wrapper">
+            <img class="piece-img" src="${imgSrc}" alt="${def.name}" draggable="false" loading="eager" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+            <div class="piece-svg-fallback" style="display:none; width:100%; height:100%;">${animalSvg}</div>
+          </div>
           <div class="piece-name">${def.name}</div>
           <div class="piece-rank">${def.rank}</div>
         `;
@@ -2014,17 +2359,17 @@
 
             if (isRiverCell(x, y)) {
               cell.classList.add("river");
-              const fishSvg =
-                (x + y) % 2 === 0
-                  ? TERRAIN_SVGS.riverFish1
-                  : TERRAIN_SVGS.riverFish2;
-              cell.innerHTML = `<div class="terrain-decor river-svg-wrapper">${fishSvg}</div>`;
+              cell.innerHTML = `
+                <div class="terrain-decor river-decor">
+                  <img class="river-img" src="${TERRAIN_IMAGES.river}" alt="河流" draggable="false" loading="eager" />
+                </div>
+              `;
             } else if (isTrap(x, y)) {
               cell.classList.add("trap");
               if (isTrap(x, y, "blue")) cell.classList.add("blue-side");
               cell.innerHTML = `
-                <div class="terrain-decor">
-                  ${TERRAIN_SVGS.trap}
+                <div class="terrain-decor trap-decor">
+                  <img class="trap-img" src="${TERRAIN_IMAGES.trap}" alt="陷阱" draggable="false" loading="eager" />
                   <span class="terrain-text">陷阱</span>
                 </div>
               `;
@@ -2032,13 +2377,15 @@
               cell.classList.add("den");
               if (isDen(x, y, "blue")) cell.classList.add("blue-side");
               cell.innerHTML = `
-                <div class="terrain-decor">
-                  <div class="den-svg-wrapper">${TERRAIN_SVGS.denMountain}</div>
+                <div class="terrain-decor den-decor">
+                  <img class="den-img" src="${TERRAIN_IMAGES.den}" alt="兽穴" draggable="false" loading="eager" />
                   <span class="terrain-text">兽穴</span>
                 </div>
               `;
             } else if ((x * 7 + y) % 5 === 0) {
               cell.classList.add("grass-decor");
+            } else if ((x * 3 + y * 2) % 11 === 0) {
+              cell.classList.add("grass-decor-alt");
             }
 
             cell.addEventListener("click", () => onCellClicked(x, y));
@@ -2249,6 +2596,44 @@
         setProgress(0);
       }
 
+      let userRepositionedGear = false;
+
+      function updateGearPositionState() {
+        if (!dom.floatingGear || !dom.chessboard) return;
+        const gearRect = dom.floatingGear.getBoundingClientRect();
+        const boardRect = dom.chessboard.getBoundingClientRect();
+
+        // 判断是否有重叠/悬浮在棋盘上
+        const isOverlappingBoard = !(
+          gearRect.right < boardRect.left ||
+          gearRect.left > boardRect.right ||
+          gearRect.bottom < boardRect.top ||
+          gearRect.top > boardRect.bottom
+        );
+
+        if (isOverlappingBoard) {
+          dom.floatingGear.classList.add("on-board");
+        } else {
+          dom.floatingGear.classList.remove("on-board");
+        }
+      }
+
+      function ensureGearInBounds() {
+        if (!userRepositionedGear) {
+          updateGearPositionState();
+          return;
+        }
+        const maxX = window.innerWidth - dom.floatingGear.offsetWidth - 4;
+        const maxY = window.innerHeight - dom.floatingGear.offsetHeight - 4;
+        const currentLeft = parseFloat(dom.floatingGear.style.left) || 0;
+        const currentTop = parseFloat(dom.floatingGear.style.top) || 0;
+        const newX = Math.max(4, Math.min(maxX, currentLeft));
+        const newY = Math.max(4, Math.min(maxY, currentTop));
+        dom.floatingGear.style.left = `${newX}px`;
+        dom.floatingGear.style.top = `${newY}px`;
+        updateGearPositionState();
+      }
+
       dom.floatingGear.addEventListener("pointerdown", (e) => {
         if (e.button !== undefined && e.button !== 0) return;
         dismissGearGuide();
@@ -2274,6 +2659,7 @@
 
         if (!isDragging && Math.hypot(deltaX, deltaY) > 6) {
           isDragging = true;
+          userRepositionedGear = true;
           cancelLongPress();
         }
 
@@ -2287,6 +2673,7 @@
           dom.floatingGear.style.top = `${newY}px`;
           dom.floatingGear.style.right = "auto";
           dom.floatingGear.style.bottom = "auto";
+          updateGearPositionState();
         }
       });
 
@@ -2298,6 +2685,7 @@
         } catch (err) {}
         cancelLongPress();
         isDragging = false;
+        updateGearPositionState();
       }
 
       dom.floatingGear.addEventListener("pointerup", finishPointerInteraction);
@@ -2309,12 +2697,14 @@
       // ==========================================
       // 10. 菜单、弹窗与全屏控制
       // ==========================================
-      dom.closeSettingsBtn.addEventListener("click", () => {
+      function closeSettingsModal() {
         dom.settingsModal.classList.remove("show");
-      });
+      }
+
+      dom.closeSettingsBtn.addEventListener("click", closeSettingsModal);
 
       dom.btnMenuRules.addEventListener("click", () => {
-        dom.settingsModal.classList.remove("show");
+        closeSettingsModal();
         dom.rulesModal.classList.add("show");
       });
 
@@ -2334,19 +2724,40 @@
 
       dom.btnMenuFullscreen.addEventListener("click", () => {
         if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
+          // 进入全屏后，自动关闭设置弹窗
+          closeSettingsModal();
+          const docEl = document.documentElement;
+          const reqFs =
+            docEl.requestFullscreen ||
+            docEl.webkitRequestFullscreen ||
+            docEl.msRequestFullscreen;
+          if (reqFs) {
+            reqFs.call(docEl).catch(() => {});
+          }
         } else {
-          document.exitFullscreen().catch(() => {});
+          const exitFs =
+            document.exitFullscreen ||
+            document.webkitExitFullscreen ||
+            document.msExitFullscreen;
+          if (exitFs) {
+            exitFs.call(document).catch(() => {});
+          }
         }
       });
 
       document.addEventListener("fullscreenchange", () => {
-        if (dom.fsBtnText) {
-          dom.fsBtnText.textContent = document.fullscreenElement
-            ? "⛶ 退出全屏"
-            : "⛶ 铺满全屏";
+        const isFullscreen = !!document.fullscreenElement;
+        if (isFullscreen) {
+          closeSettingsModal();
         }
+        if (dom.fsBtnText) {
+          dom.fsBtnText.textContent = isFullscreen
+            ? "⛶ 退出全屏"
+            : "⛶ 进入全屏";
+        }
+        setTimeout(ensureGearInBounds, 100);
       });
+      window.addEventListener("resize", ensureGearInBounds);
 
       // ==========================================
       // 11. 首次进入引导提示
@@ -2381,6 +2792,7 @@
       // ==========================================
       initBoardDOM();
       resetGame();
+      updateGearPositionState();
 
       try {
         if (!localStorage.getItem(GEAR_TIP_KEY)) {
