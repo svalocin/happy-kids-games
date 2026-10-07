@@ -376,7 +376,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 6;
+        z-index: 20;
         pointer-events: none;
       }
       .move-hint-indicator[data-side="blue"] {
@@ -2199,9 +2199,8 @@
       }
 
       function canCapture(attacker, defender, targetX, targetY) {
-        const enemySide = attacker.side === "red" ? "blue" : "red";
-        const isDefenderInEnemyTrap = isTrap(targetX, targetY, enemySide);
-        if (isDefenderInEnemyTrap) return { can: true };
+        // 掉进攻击方陷阱（对防守方而言是对方陷阱）则失去战力，任意动物可吃
+        if (isTrap(targetX, targetY, attacker.side)) return { can: true };
 
         if (attacker.type === "rat" && defender.type === "elephant") {
           return { can: true };
@@ -2536,17 +2535,14 @@
 
               const targetP = getPieceAt(m.x, m.y);
               const hintEl = document.createElement("div");
-              hintEl.className = "move-hint-indicator";
+              hintEl.className = "move-hint-indicator paw";
               hintEl.dataset.side = selected.side;
+              hintEl.innerHTML = TERRAIN_SVGS.pawHint;
 
               if (targetP && targetP.side !== selected.side) {
                 cell.classList.add("valid-capture");
-                hintEl.classList.add("capture");
-                hintEl.innerHTML = TERRAIN_SVGS.captureHint;
               } else {
                 cell.classList.add("valid-move");
-                hintEl.classList.add("paw");
-                hintEl.innerHTML = TERRAIN_SVGS.pawHint;
               }
               cell.appendChild(hintEl);
             });
